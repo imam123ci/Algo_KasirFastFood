@@ -8,3 +8,14 @@
 
 ## Branch
 Mohon setiap partisipan membuat branch/cabang sendiri. Jangan lupa bagi akun github di line biar bisa dimasukan jadi contributor. Terima Kasih.
+
+## Visual Studio
+Visual Studio yang digunakan adalah [Visual Studio Community] (https://visualstudio.microsoft.com/vs/community). Buat @David, tidak perlu install visual studio. Tinggal bagian sql di main.cpp di-comment saja. Hubungi jika bingung. 
+
+## SQL Server
+SQL server menggunakan server yang sudah di publish dengan identitas berikut :
+* serverip = 94.237.72.228;
+* Database = ContohDB -> Bisa ganti kalau mau;
+* User = sa;
+*	Pass	 = [Tanya Group] (#);
+
