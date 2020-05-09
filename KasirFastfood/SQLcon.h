@@ -16,6 +16,7 @@ public:
 	sqlcon(std::string conn);
 	void showSQLError(unsigned int handleType, const SQLHANDLE& handle);
 	void closecon();
+	void freestmt();
 	SQLHANDLE exec(std::string SQLQuery);
 
 
@@ -107,4 +108,10 @@ SQLHANDLE sqlcon::exec(std::string SQLQuery) {
 	{
 		return(this->SQLStatementHandle);
 	}
+}
+
+void sqlcon::freestmt() {
+	SQLFreeStmt(this->SQLStatementHandle, SQL_UNBIND);
+	SQLFreeStmt(this->SQLStatementHandle, SQL_CLOSE);
+	
 }

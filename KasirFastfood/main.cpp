@@ -12,24 +12,37 @@
 #include <string>
 #include <algorithm>
 
-/*
-// Do not care about this part
+
+// Login or User Class
 class Login
 {
 public:
+	int uid = 0, urole = 0;
+	std::string uname;
+
 	bool status = FALSE;
 	void login(sqlcon sqlcn);
 	void signout();
-	void regis(std::string uname, std::string pass, int role);
+	void regis(sqlcon sqlcn);
+	
+
+private:
+	bool confirm(char y);
 };
+
+bool Login::confirm(char y) {
+	if (y == 'Y' or y == 'y')
+		return TRUE;
+	else
+		return FALSE;
+}
 
 void Login::login(sqlcon sqlcn)
 {
 	std::string u;
 	std::string p;
 	int i = 0;
-	char result[250];
-	std::string rs;
+
 
 	std::cout << "Please login to continue" << std::endl
 		<< "------------------------------" << std::endl;
@@ -51,39 +64,118 @@ void Login::login(sqlcon sqlcn)
 		std::cout << std::endl;
 
 
-		SQLHANDLE queryansw = sqlcn.exec("DECLARE @responseMessage NVARCHAR(250);exec dbo.LoginUser \
-							@pUsername='" + u + "', \
-							@pPassword='" + p + "',\
-							@pResponseMessage=@responseMessage OUTPUT;\
-							select @responseMessage;");
+		sqlcn.exec("DECLARE @responseMessage NVARCHAR(250);exec Lgn.LoginUser \
+					@pUsername='" + u + "', \
+					@pPassword='" + p + "',\
+					@pResponseMessage=@responseMessage OUTPUT;\
+					select @responseMessage;");
 
 
 		//std::cout << "Running Query : " << std::endl;
-
-		while (SQLFetch(queryansw) == SQL_SUCCESS) {
-			SQLGetData(queryansw, 1, SQL_C_DEFAULT, &result, sizeof(result), NULL);
+		//FetchSQL
+		char result[250];
+		std::string rs;
+		while (SQLFetch(sqlcn.SQLStatementHandle) == SQL_SUCCESS) {
+			SQLGetData(sqlcn.SQLStatementHandle, 1, SQL_C_DEFAULT, &result, sizeof(result), NULL);
 		}
 
+		//free statement
+		sqlcn.freestmt();
+
+		//change to string
 		rs = result;
-		if (rs == "SUCCESS") {
+		if (rs != "Username or Password is incorrect") {
+			// Check if output is what program desire
+			try
+			{
+				std::stoi(rs);
+			}
+			catch (const std::exception&)
+			{
+				std::cout << "Something go wrong" << std::endl;
+				this->status = FALSE;
+				return;
+			}
+
+			// Get Login Detail
+			sqlcn.exec("\
+					select u.id, u.username, r.id from \
+					Lgn.TblUser u Join Lgn.TblRoleUser r\
+					ON u.id_roleuser = r.id and u.id ="+rs+"; ");
+			//Fetch Data
+			int userid;
+			char username[50];
+			int userrole;
+			while (SQLFetch(sqlcn.SQLStatementHandle) == SQL_SUCCESS) {
+				SQLGetData(sqlcn.SQLStatementHandle, 1, SQL_INTEGER, &userid, 0, NULL);
+				SQLGetData(sqlcn.SQLStatementHandle, 2, SQL_C_DEFAULT, &username, sizeof(username), NULL);
+				SQLGetData(sqlcn.SQLStatementHandle, 3, SQL_INTEGER, &userrole, 0, NULL);
+			}
+
+			sqlcn.freestmt();
+
+			// Store to class variable
+			this->uid = userid;
+			this->uname = username;
+			this->urole = userrole;
+
 			std::cin.ignore();
-			std::cout << "Login success" << std::endl;
+			std::cout << "Login success " <<std::endl
+				<< "Welcome, " << this->uname;
 			this->status = TRUE;
+			return;
 		}
 		else {
 			std::cout << "Can't login : " << result << std::endl;
 		}
-	} while (rs != "SUCCESS" and i < 2);
+	} while (this->status == FALSE and i < 3);
 	std::cin.ignore();
 	this->status = FALSE;
 }
 void Login::signout() {
 	this->status = FALSE;
 }
-void Login::regis(std::string uname, std::string pass, int role) {
+void Login::regis(sqlcon sqlcn) {
+	char conf;
+	std::cout << "------- \n" << "Do you want to add new user [y/n] ? : ";
+	std::cin >> conf;
+
+	//check confirmation
+	if (this->confirm(conf)) {
+		//check user privilage
+		if (this->urole > 2)
+			return;
+
+		//set variable
+		std::string uu;
+		std::string up;
+		int  r = 3;
+
+		//input variable
+		std::cout << "> New username  : " ;
+		std::cin >> uu;
+		std::cout << "> User password : " ;
+		std::cin >> up;
+		std::cout << "> User role (3) : " ;
+		std::cin >> r;
+		//store to DB
+		sqlcn.exec("\
+			DECLARE @responseMessage NVARCHAR(250);\
+			EXEC Lgn.SignUpUser\
+				@pUsername = '"+uu+"',\
+				@pPassword = '"+up+"',\
+				@pRole = "+ std::to_string(r)+",\
+				@pResponseMessage = @responseMessage OUTPUT;\
+			SELECT @responseMessage;\
+		");
+
+		sqlcn.freestmt();
+	}
+
+
+	return;
 
 }
-*/
 
 
 // -----------------------------------------------
@@ -96,6 +188,26 @@ void Login::regis(std::string uname, std::string pass, int role) {
 bool Test() {
 	std::cout << "Fungsi perintah jalan di fungsi ini" << std::endl;
 	return FALSE;
+}
+
+void get_cnth(sqlcon sqlcn) {
+	char r1[250];
+	char r2[250];
+
+	sqlcn.exec("select * from dbo.cnth");
+	while (SQLFetch(sqlcn.SQLStatementHandle) == SQL_SUCCESS) {
+		SQLGetData(sqlcn.SQLStatementHandle, 1, SQL_C_DEFAULT, &r1, sizeof(r1), NULL);
+	}
+
+	sqlcn.freestmt();
+
+	sqlcn.exec("select * from dbo.cnth");
+	while (SQLFetch(sqlcn.SQLStatementHandle) == SQL_SUCCESS) {
+		SQLGetData(sqlcn.SQLStatementHandle, 1, SQL_C_DEFAULT, &r2, sizeof(r2), NULL);
+	}
+
+	sqlcn.freestmt();
+
 }
 
 
@@ -182,11 +294,13 @@ int main()
 	std::cout << "Welcome to Kasir FastFood 0.1 " << std::endl;
 	std::cout << "Type help to list all available menu " << std::endl;
 	
+
 	// CLI state variable
 	// Don't let this happen in real live
 	// Set Login==True for no login
-	bool login = TRUE;
+	bool login = FALSE;
 	bool exit = FALSE;
+	Login lgn;
 	std::string cmd;
 
 	// Graphic looping
@@ -194,12 +308,14 @@ int main()
 	do {
 
 		//Check If user has login
-		if (!login)
-			//login = Login(sqlcn);
+		if (!lgn.status)
+			lgn.login(sqlcn);
+					
 		//check if login attempt valid
 		//if not force to shutdown
-		if (!login)
+		if (!lgn.status)
 			break;
+
 		std::cout << " Command# ";
 		std::getline(std::cin, cmd);
 		exit = SwitchCommand(cmd);
