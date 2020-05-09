@@ -18,6 +18,9 @@
     <ClInclude Include="SQLcon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="FILEScon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

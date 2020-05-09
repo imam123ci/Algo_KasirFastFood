@@ -139,6 +139,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FILEScon.h" />
     <ClInclude Include="SQLcon.h" />
   </ItemGroup>
   <ItemGroup>
