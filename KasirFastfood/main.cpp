@@ -184,39 +184,97 @@ void Login::regis(sqlcon sqlcn) {
 // All function has bool type
 // Return False only, True value for terminate Program
 // -----------------------------------------------
+bool confirm(std::string msg = "Apakah Anda ingin menambahkan lagi [Y/N] :") {
+	char c;
+	std::cout << msg;
+	std::cin >> c;
+	if (c == 'y' or c == 'Y')
+		return 1;
+	return 0;
+}
 
 bool Test() {
 	std::cout << "Fungsi perintah jalan di fungsi ini" << std::endl;
 	return FALSE;
 }
 
-void get_cnth(sqlcon sqlcn) {
-	char r1[250];
-	char r2[250];
-
-	sqlcn.exec("select * from dbo.cnth");
-	while (SQLFetch(sqlcn.SQLStatementHandle) == SQL_SUCCESS) {
-		SQLGetData(sqlcn.SQLStatementHandle, 1, SQL_C_DEFAULT, &r1, sizeof(r1), NULL);
-	}
-
-	sqlcn.freestmt();
-
-	sqlcn.exec("select * from dbo.cnth");
-	while (SQLFetch(sqlcn.SQLStatementHandle) == SQL_SUCCESS) {
-		SQLGetData(sqlcn.SQLStatementHandle, 1, SQL_C_DEFAULT, &r2, sizeof(r2), NULL);
-	}
-
-	sqlcn.freestmt();
-
+// Role Base Access Control
+// let's implement it on c++ not store in sql
+bool RBAC(Login lgn, std::vector<int> can_access_list) {
+	for (int i : can_access_list)
+		if (i == lgn.urole)
+			return 1;
+	return 0;
 }
 
+
+// Menu kasir
+bool Kasir() {
+	int menu = 0;
+	int quantity = 1;
+	bool lanjut0 = 1, lanjut1 = 1;
+	do {
+		// Get Menu Data form database
+
+		// Show Menu Data store variable
+
+		// looping until all menu are inputed
+		do {
+			std::cout << "---------MenuFastFood---------" << std::endl;
+			std::cout << "==============================" << std::endl;
+			std::cout << "|No.   |   Produk   |   Harga|" << std::endl;
+			std::cout << " ==============================" << std::endl;
+			//line -> jadi data sql
+			std::cout << "|1.    |Paket A     |  30.000|" << std::endl;
+			std::cout << "|2.    |Paket B     |  27.500|" << std::endl;
+			std::cout << "|3.    |Hamburger   |  18.500|" << std::endl;
+			std::cout << "|4.    |French Fries|   9.500|" << std::endl;
+			std::cout << "|5.    |Softdrink   |   5.500|" << std::endl;
+			std::cout << "==============================" << std::endl;
+			// sampai sini
+			std::cout << std::endl;
+
+			std::cout << "No pesanan     : ";
+			std::cin >> menu;
+			std::cout << "Banyak pesanan : ";
+			std::cin >> quantity;
+			
+			// Looping to add new menu
+			lanjut0 = confirm();
+
+		} while (lanjut0);
+
+		// Input Data to Database
+
+		// Get total harga via sql function
+
+		// Calculate other things
+
+		/*
+		
+		*/
+		
+
+
+		lanjut1 = confirm("Apakah Anda ingin tetap di menu kasir? [Y/N] : ");
+	} while (lanjut1);
+
+	return 0;
+}
+
+// Menu control panel user
+bool Usr() {
+
+	return 0;
+}
 
 // Manage all available command or menu
 // -----------------------------------------------
 // FOCUS HERE 1
 // ALL main command goes here
+// return 1 to terminate program
 // -----------------------------------------------
-bool SwitchCommand(std::string cmd) {
+bool SwitchCommand(std::string cmd, sqlcon sqlcn, Login lgn) {
 	std::cout << std::endl;
 
 	//Declare All Variable
@@ -251,6 +309,25 @@ bool SwitchCommand(std::string cmd) {
 	// test command
 	else if (maincmd == "test")
 		return Test();
+
+	else if (maincmd == "kasir")
+		return Kasir();
+
+	else if (maincmd == "user control") {
+		if (!RBAC(lgn, {1})) {
+			std::cout << "You don't have access to this menu"<< std::endl;
+			return 0;
+		}
+		
+		return Usr();
+	}
+
+	else if (maincmd == "laporan") {
+		if (!RBAC(lgn, {1,2})) {
+			std::cout << "You don't have access to this menu" << std::endl;
+			return 0;
+		}
+	}
 
 	/*
 	// Planning to add all default command
@@ -318,7 +395,7 @@ int main()
 
 		std::cout << " Command# ";
 		std::getline(std::cin, cmd);
-		exit = SwitchCommand(cmd);
+		exit = SwitchCommand(cmd, sqlcn, lgn);
 	} while (!exit);
 
 	sqlcn.closecon();
