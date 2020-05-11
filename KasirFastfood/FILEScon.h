@@ -43,7 +43,7 @@ auto bacaFile(std::string namafile, char delimeter) {
 }
 
 auto tulisFile(std::string namafile, char delimeter, std::vector<std::vector<std::string>> data,
-	std::string premessage = NULL) {
+	std::string premessage = "") {
 	// file pointer 
 	std::fstream fl;
 	fl.open(namafile, std::fstream::out | std::fstream::app);

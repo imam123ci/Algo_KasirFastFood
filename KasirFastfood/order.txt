@@ -1,0 +1,3 @@
+Id,Kasir,Total Transaksi,Waktu Transaksi,
+1,Admin,98000,May 10 2020 11:10PM,
+2,Admin,45000,May 10 2020 11:40PM,
