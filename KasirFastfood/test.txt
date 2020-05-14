@@ -1,5 +1,1 @@
 Id,Menu,Jenis Menu,Harga,Keuntungan,
-1,Burger,15000,0,
-5,Ayam,17000,0,
-6,Ayam Krispy,17000,0,
-5,Ayam,17000,0,

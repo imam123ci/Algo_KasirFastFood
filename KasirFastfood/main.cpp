@@ -556,9 +556,10 @@ bool Manager(sqlcon sqlcn, Login lgn) {
 				std::getline(std::cin, mn);
 				if (!confirm("Fungsi ini akan menimpa data di file " + mn + ", Lanjutkan ? [Y?N]"))
 					break;
-				sqlcn.exec("SELECT * FROM [dbo].[func_keuntungan] ();");
+				sqlcn.exec("SELECT barang.id,barang.nama,barang.harga, barang.harga-barang.modal AS keuntungan\
+					FROM[dbo].[barang] WHERE barang.is_valid = 1; ");
 
-				data1.push_back({ "Id","Menu","Jenis Menu","Harga","Keuntungan" });
+				data1.push_back({ "Id","Menu","Harga","Keuntungan" });
 				i++;
 				while (SQLFetch(sqlcn.SQLStatementHandle) == SQL_SUCCESS) {
 					data1.push_back(std::vector<std::string>());
@@ -572,17 +573,44 @@ bool Manager(sqlcon sqlcn, Login lgn) {
 					data1[i].push_back(std::to_string(r3));
 					i++;
 				}
-				
-				if(hapusFile(mn))
+
+				if (hapusFile(mn))
 					std::cout << "Berhasil menghapus file lama" << std::endl;
-				if(tulisFile(mn, ',', data1))
+				if (tulisFile(mn, ',', data1))
 					std::cout << "Berhasil mengeksport file" << std::endl;
-				
+
 				sqlcn.freestmt();
 			}
 				break;
 			case (7): {
-				std::cout << "Fungsi dalam pengembangan " << std::endl;
+				std::cout << "Masukan Nama File : ";
+				std::cin.ignore();
+				std::getline(std::cin, mn);
+				if (!confirm("Fungsi ini akan menimpa data di file " + mn + ", Lanjutkan ? [Y?N]"))
+					break;
+				sqlcn.exec("SELECT * FROM [dbo].[func_keuntungan] ();");
+
+				data1.push_back({ "Id","Menu","Harga","Keuntungan" });
+				i++;
+				while (SQLFetch(sqlcn.SQLStatementHandle) == SQL_SUCCESS) {
+					data1.push_back(std::vector<std::string>());
+					SQLGetData(sqlcn.SQLStatementHandle, 1, SQL_INTEGER, &r1, 0, NULL);
+					SQLGetData(sqlcn.SQLStatementHandle, 2, SQL_C_DEFAULT, &rs1, sizeof(rs1), NULL);
+					SQLGetData(sqlcn.SQLStatementHandle, 3, SQL_INTEGER, &r2, 0, NULL);
+					SQLGetData(sqlcn.SQLStatementHandle, 4, SQL_INTEGER, &r3, 0, NULL);
+					data1[i].push_back(std::to_string(r1));
+					data1[i].push_back(rs1);
+					data1[i].push_back(std::to_string(r2));
+					data1[i].push_back(std::to_string(r3));
+					i++;
+				}
+
+				if (hapusFile(mn))
+					std::cout << "Berhasil menghapus file lama" << std::endl;
+				if (tulisFile(mn, ',', data1))
+					std::cout << "Berhasil mengeksport file" << std::endl;
+
+				sqlcn.freestmt();
 			}
 				break;
 			case (8): {
